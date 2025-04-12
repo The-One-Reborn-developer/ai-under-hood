@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="../styles/main.css">
+
+    <title>CV Under Hood</title>
+</head>
+<body>
+    <div class="content">
+        <header class="header-container">
+            <span>
+                <a href="../index.html">Main</a> ©&nbsp;Adil Arshidin
+            </span>
+            <span class="header-container__nav">
+                <a href="#">ECVC</a>&nbsp;·
+                <a href="#">LLM & OCR Benchmark</a>&nbsp;·
+                <a href="../knowledge_base.html">Knowledge Base</a>
+            </span>
+            <span>
+                <a href="#">DE 🇩🇪</a>&nbsp;/
+                <a href="#">RU 🇷🇺</a>&nbsp;/
+                <a href="llm-or-ocr.html">EN 🇬🇧</a>
+            </span>
+        </header>
+        <main class="main-container">
+            <article>
+                <h3>LLM or OCR?</h3>
+                <p>Which is the right tool for the job? It depends mainly on the kind of data you expect to process.</p>
+
+                <p>As an example, I will use two cases from my experience.</p>
+
+                <br>
+
+                <h4>Case 1: Document fields recognition from digital files</h4>
+
+                <p><strong>What the client needed:</strong></p>
+                <ul>
+                    <li>Extract information from a document in the form of an image file (JPEG).</li>
+                    <li>The entire data extraction pipeline had to be performed locally.</li>
+                </ul>
+
+                <p>The image below is an example of the type of files I had to work with. It’s not a real file from the case, but its format is very close:</p>
+
+                <img src="../images/llm-or-ocr-1.jpg" alt="scanned document image">
+
+                <p>I won’t go over how this task was solved, as it’s covered in <a href="ocr-fine-tuning.html">this article</a>.</p>
+
+                <p>We can see that there are <strong>no distortions</strong> in the data. Also, there is <strong>no additional context</strong> in the image that needs to be considered (more on that later in the article). Because of this, an OCR model should be used.</p>
+
+                <br>
+
+                <h4>Case 2: Document fields recognition from photos</h4>
+
+                <p>One of my clients was building a KYC system in which one of the steps involved extracting data from a photo of a document uploaded by the user.</p>
+
+                <p><strong>What the client needed:</strong></p>
+                <ul>
+                    <li>Extract information from the document in the form of a photo.</li>
+                    <li>At the time, they were using Gemini 1.5 Pro by making API requests to it. They needed a local solution, preferably one that wasn’t too GPU-heavy.</li>
+                </ul>
+
+                <p>The following image is an example of such a user-submitted photo:</p>
+
+                <img src="../images/llm-or-ocr-2.jpg" alt="user's document photo">
+
+                <p>We can immediately see the potential problems with trying to use an OCR model to process such an image:</p>
+                <ul>
+                    <li>The document may be deformed or not clearly visible (in the example above, it’s enclosed in a transparent material).</li>
+                    <li>The photo quality can be poor.</li>
+                    <li>Other visual elements might interfere with the task. For example, the document might be lying on top of a non-blank sheet of paper.</li>
+                    <li>Users don’t always send ideal photos. The image could be rotated, overexposed by flash, or partially obscured.</li>
+                    <li>Remember when I mentioned context? In this case, we not only need to extract data but also evaluate whether the document is fake, missing fields, handwritten, or digitally filled.</li>
+                </ul>
+
+                <p>Considering all these points, the LLM is the better choice here.</p>
+
+                <br>
+
+                <h4>Summary</h4>
+
+                <p><strong>An OCR model should be used if:</strong></p>
+                <ul>
+                    <li>The images are uniform, with little to no variety in presentation.</li>
+                    <li>The only task is data extraction (technically, an OCR model could be part of a MoE pipeline, but here we are choosing the tool that can cover all required tasks).</li>
+                </ul>
+
+                <p><strong>An LLM should be used if:</strong></p>
+                <ul>
+                    <li>The images include distortions.</li>
+                    <li>Data extraction is only one of multiple required tasks.</li>
+                </ul>
+                </p>
+            </article>
+        </main>
+    </div>
+</body>
+</html>
