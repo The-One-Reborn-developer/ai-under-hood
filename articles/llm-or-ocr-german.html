@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="../styles/main.css">
+
+    <title>CV Under Hood</title>
+</head>
+<body>
+    <div class="content">
+        <header class="header-container">
+            <span>
+                <a href="../index-german.html">Startseite</a> ©&nbsp;Adil Arshidin
+            </span>
+            <span class="header-container__nav">
+                <a href="#">ECVC</a>&nbsp;·
+                <a href="#">LLM & OCR Benchmark</a>&nbsp;·
+                <a href="../knowledge_base-german.html">Wissensdatenbank</a>
+            </span>
+            <span>
+                <a href="llm-or-ocr-german.html">DE 🇩🇪</a>&nbsp;/
+                <a href="llm-or-ocr-russian.html">RU 🇷🇺</a>&nbsp;/
+                <a href="llm-or-ocr.html">EN 🇬🇧</a>
+            </span>
+        </header>
+        <main class="main-container">
+            <article>
+                <h3>LLM oder OCR-Modelle?</h3>
+                <p>Welches Werkzeug ist das richtige für diese Aufgabe? Das hängt hauptsächlich von der Art der Daten ab, die Sie verarbeiten möchten.</p>
+
+                <p>Als Beispiel werde ich zwei Fälle aus meiner Erfahrung verwenden.</p>
+
+                <br>
+
+                <h4>Fall 1: Erkennung von Dokumentfeldern aus digitalen Dateien</h4>
+
+                <p><strong>Was der Kunde benötigte:</strong></p>
+                <ul>
+                    <li>Informationen aus einem Dokument in Form einer Bilddatei (JPEG) extrahieren.</li>
+                    <li>Die gesamte Datenextraktions-Pipeline musste lokal ausgeführt werden.</li>
+                </ul>
+
+                <p>Das Bild unten ist ein Beispiel für die Art von Dateien, mit denen ich gearbeitet habe. Es handelt sich nicht um eine echte Datei aus dem Fall, aber das Format ist sehr ähnlich.</p>
+
+                <img src="../images/llm-or-ocr-1.jpg" alt="gescanntes Dokumentbild">
+
+                <p>Ich werde nicht darauf eingehen, wie diese Aufgabe gelöst wurde, da sie in <a href="ocr-fine-tuning-german.html">diesem Artikel</a> behandelt wird.</p>
+
+                <p>Wir können sehen, dass es <strong>keine Verzerrungen</strong> in den Daten gibt. Außerdem enthält das Bild <strong>keinen zusätzlichen Kontext</strong>, der berücksichtigt werden müsste (mehr dazu später im Artikel). Daher sollte ein OCR-Modell verwendet werden.</p>
+
+                <br>
+
+                <h4>Fall 2: Erkennung von Dokumentfeldern auf Fotos</h4>
+
+                <p>Einer meiner Kunden entwickelte ein KYC-System, bei dem einer der Schritte darin bestand, Daten aus einem vom Nutzer hochgeladenen Dokumentfoto zu extrahieren.</p>
+
+                <p><strong>Was der Kunde benötigte:</strong></p>
+                <ul>
+                    <li>Informationen aus dem Dokument in Form eines Fotos extrahieren.</li>
+                    <li>Zu diesem Zeitpunkt nutzten sie Gemini 1.5 Pro über API-Anfragen. Sie benötigten eine lokale Lösung, vorzugsweise eine, die nicht zu GPU-intensiv war.</li>
+                </ul>
+
+                <p>Das folgende Bild ist ein Beispiel für ein vom Nutzer hochgeladenes Foto:</p>
+
+                <img src="../images/llm-or-ocr-2.jpg" alt="Dokumentfoto des Nutzers">
+
+                <p>Wir können sofort die potenziellen Probleme erkennen, wenn man versucht, ein solches Bild mit einem OCR-Modell zu verarbeiten.</p>
+                <ul>
+                    <li>Das Dokument kann deformiert oder nicht klar sichtbar sein (im obigen Beispiel ist es in ein transparentes Material eingeschlossen).</li>
+                    <li>Die Fotoqualität kann schlecht sein.</li>
+                    <li>Andere visuelle Elemente könnten die Aufgabe stören. Zum Beispiel könnte das Dokument auf einem nicht leeren Blatt Papier liegen.</li>
+                    <li>Die Nutzer senden nicht immer ideale Fotos. Das Bild kann gedreht, durch den Blitz überbelichtet oder teilweise verdeckt sein.</li>
+                    <li>Erinnern Sie sich, als ich den Kontext erwähnte? In diesem Fall müssen wir nicht nur die Daten extrahieren, sondern auch bewerten, ob das Dokument gefälscht, ob Felder fehlen, handgeschrieben oder digital ausgefüllt ist.</ul>
+                </ul>
+
+                <p>In Anbetracht all dieser Punkte ist das LLM hier die bessere Wahl.</p>
+
+                <br>
+
+                <h4>Zusammenfassung</h4>
+
+                <p><strong>Ein OCR-Modell sollte verwendet werden, wenn:</strong></p>
+                <ul>
+                    <li>Die Bilder sind einheitlich, mit wenig bis keiner Abwechslung in ihrer Präsentation.</li>
+                    <li>Die einzige Aufgabe ist die Datenextraktion (technisch gesagt, das OCR-Modell könnte Teil eines MoE-Pipelines sein, aber hier wählen wir das Werkzeug, das alle notwendigen Aufgaben abdecken kann).</li>
+                </ul>
+
+                <p><strong>Ein LLM sollte verwendet werden, wenn:</strong></p>
+                <ul>
+                    <li>Die Bilder haben Verzerrungen.</li>
+                    <li>Datenextraktion ist nur eine von mehreren benötigten Aufgaben.</li>
+                </ul>
+                </p>
+            </article>
+        </main>
+    </div>
+</body>
+</html>
