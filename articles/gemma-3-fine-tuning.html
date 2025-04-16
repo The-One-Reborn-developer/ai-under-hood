@@ -28,7 +28,7 @@
         <main class="main-container">
             <article>
                 <h3>Fine-Tuning Gemma 3 with a custom dataset for a task of data extraction from an image.</h3>
-                <p><a href="https://ai.google.dev/gemma/docs/core/huggingface_vision_finetune_qlora" target="_blank">This guide</a> was used as a reference. However, the errors that occur during the process are not documented. Also, the topic of using a custom dataset is not covered. I aim to provide a more detailed guide.</p>
+                <p><a href="https://ai.google.dev/gemma/docs/core/huggingface_vision_finetune_qlora" target="_blank">This guide</a> was used as a reference. However, the errors that occur during the process are not documented. Also, the topic of using a custom dataset is not covered.</p>
                 <p>This guide assumes you are using an Ubuntu type Linux distribution. The only difference between using a different OS is in the prior setup to the fine-tuning.</p>
                 <br>
 
@@ -198,7 +198,7 @@ if __name__ == '__main__':
                 </p>
                 <br>
 
-                <h4>Fine-Tuning</h4>
+                <h4>Prepare the code</h4>
                 <p>Now everything is set to do the job. Create a <code>loader.py</code> file in your project's root and paste the following code in it (The comments also list the various gemma models you can choose from). This is a helper module that will load the model and its processor:</p>
                 <div class="code-wrapper">
                     <pre><code id="code-snippet">import torch
@@ -365,6 +365,149 @@ if __name__ == '__main__':
     trainer.train()
     trainer.save_model()</code></pre>
                 </div>
+                <p>The guide uses QLoRA, so we do not actually train the model, we train the adapter weights. The next thing that needs to be done is to merge them onto the model, <strong>this is a heavy task (requires around 40GB of RAM).</strong></p>
+                <p>Create a <code>merge.py</code> file and paste the following code into it:</p>
+                <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode()">Copy</button>
+                <pre><code id="code-snippet">from pathlib import Path
+from peft import PeftModel
+
+from transformers import AutoModelForImageTextToText, AutoProcessor
+
+
+MODEL_ID = "google/gemma-3-4b-pt" # `google/gemma-3-4b/12b/27b-pt`
+MODEL = AutoModelForImageTextToText.from_pretrained(MODEL_ID, low_cpu_mem_usage=True)
+PEFT_MODEL = PeftModel.from_pretrained(MODEL, Path('.') / "")  # Provide the "trained" model's name here
+
+MERGED_MODEL = PEFT_MODEL.merge_and_unload()
+MERGED_MODEL.save_pretrained("", safe_serialization=True, max_shard_size='2GB')  # Provide the name for the merged model that will be saved
+
+PROCESSOR = AutoProcessor.from_pretrained(Path('.') / "")  # Provide the "trained" model's name here
+PROCESSOR.save_pretrained("")  # Provide the name for the merged model that will be saved</code></pre>
+                </div>
+                <p>Fill the empty strings "" with the appropriate names.</p>
+                <br>
+
+                <h4>Fine-Tuning</h4>
+                <p>Now everything is ready to begin the fine-tuning process. Run the following commands from the project's root:</p>
+                <ol>
+                    <li><code>python create_image_urls.py</code></li>
+                    <p>Expected output:</p>
+                    <p><code>File paths saved to {output file name}</code></p>
+                    <li><code>python create_jsonl.py</code></li>
+                    <p>Expected output:</p>
+                    <p><code>Started creation of jsonl file...</code></p>
+                    <p><code>Reading urls file...</code></p>
+                    <p><code>Writing to output file...</code></p>
+                    <li><code>PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True python fine_tune.py</code></li>
+                    <p>The model should start tuning now. When it's finished, run the final command.</p>
+                    <li><code>python merge.py</code></li>
+                </ol>
+                <br>
+
+                <h4>Inference</h4>
+                <p>We have the model. Now to run inference on it we need to setup one more script.</p>
+                <p>Create <code>inference.py</code> file and paste the following code into it:</p>
+                <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode()">Copy</button>
+                <pre><code id="code-snippet">import torch
+
+from logging import basicConfig, INFO, getLogger
+from PIL import Image
+from pathlib import Path
+from transformers import AutoModelForImageTextToText, AutoProcessor
+
+
+basicConfig(level=INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+LOGGER = getLogger(__name__)
+
+MODEL = AutoModelForImageTextToText.from_pretrained(
+    Path('.') / "",  # Provide merged model name
+    device_map="auto",
+    torch_dtype=torch.bfloat16,
+    attn_implementation="eager",
+)
+PROCESSOR = AutoProcessor.from_pretrained(Path('.') / "")  # Provide merged model name
+
+
+def run_inference(image_path):
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},  # Use the same prompt that was used during fine-tuning
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "Extract the data from this image"},
+                {"type": "image", "image": Image.open(image_path)}
+            ]
+        },
+    ]
+
+    inputs = PROCESSOR.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True
+    )
+
+    inputs = PROCESSOR(
+        text=[inputs],
+        images=[Image.open(image_path)],
+        padding=True,
+        return_tensors="pt",
+    )
+    inputs = inputs.to(MODEL.device)
+
+    stop_token_ids = [
+        PROCESSOR.tokenizer.eos_token_id,
+        PROCESSOR.tokenizer.convert_tokens_to_ids("&lt;end_of_turn&gt;")
+    ]
+
+    generated_ids = MODEL.generate(
+        **inputs,
+        max_new_tokens=512,
+        top_p=0.9,
+        do_sample=True,
+        temperature=0.15,
+        eos_token_id=stop_token_ids,
+        disable_compile=True,
+    )
+
+    generated_ids = MODEL.generate(**inputs, max_new_tokens=256, top_p=1.0, do_sample=True, temperature=0.8, eos_token_id=stop_token_ids, disable_compile=True)
+    generated_ids_trimmed = [out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)]
+    output_text = PROCESSOR.batch_decode(
+        generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
+    )
+
+    return output_text[0]
+
+
+def evaluate_single_image(image_path: Path):
+    json_path = image_path.with_suffix(".json")
+    if not json_path.exists():
+        LOGGER.error(f"JSON file not found for image: {image_path}")
+        return
+
+    start_time = time.time()
+    pred = run_inference(image_path)
+    elapsed = time.time() - start_time
+
+    with open(json_path, "r", encoding="utf-8") as f:
+        ground_truth = json.load(f)
+
+    correct, total = evaluate_prediction(pred, ground_truth)
+
+    LOGGER.info(f"{image_path.name} - Accuracy: {correct}/{total} ({correct/total if total > 0 else 0:.2%})")
+    LOGGER.info(f"Inference time: {elapsed:.2f} seconds")
+
+if __name__ == '__main__':
+    sample = Path('.') / ""  # Path to an image to be passed for inference
+    result = run_inference(sample, MODEL, PROCESSOR)
+    LOGGER.info(result)</code></pre>
+                </div>
+                <p>Finally, run inference on your image:</p>
+                <p><code>python inference.py path/to/file</code></p>
+                <br>
+
+                <h4>Afterword</h4>
+                <p>The inference shown here is not meant to be used in production systems, as transformers library does not have the capacity for that. If you want your tuned LLM to perform in production, consider looking into <a href="#">this guide</a>.</p>
+                <!--TODO: add link to vLLM article-->
             </article>
         </main>
     </div>
