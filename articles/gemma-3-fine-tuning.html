@@ -29,12 +29,12 @@
             <article>
                 <h3>Fine-Tuning Gemma 3 with a custom dataset for a task of data extraction from an image.</h3>
                 <p><a href="https://ai.google.dev/gemma/docs/core/huggingface_vision_finetune_qlora" target="_blank">This guide</a> was used as a reference. However, the errors that occur during the process are not documented. Also, the topic of using a custom dataset is not covered.</p>
-                <p>This guide assumes you are using an Ubuntu type Linux distribution. The only difference between using a different OS is in the prior setup to the fine-tuning.</p>
+                <p>This guide assumes you are using an Ubuntu-based Linux distribution. The only difference between using a different OS is in the prior setup to the fine-tuning.</p>
                 <br>
 
                 <h4>Environment</h4>
                 <p>Python 3.11.7 will be used. You can use it locally for this project with <a href="https://github.com/pyenv/pyenv" target="_blank">pyenv</a>. With pyenv installed and configured, navigate to the project's directory and execute: <code>pyenv local 3.11.7</code>.</p>
-                <p>Now create and activate the virtual environment using venv, poetry, conda or whatever else you prefer.</p>
+                <p>Now, create and activate a virtual environment using venv, Poetry, Conda, or your preferred tool.</p>
                 <br>
 
                 <h4>Dependencies</h4>
@@ -63,11 +63,11 @@
                 <br>
 
                 <h4>HuggingFace token</h4>
-                <p>You will need to create or take your existing HuggingFace token. You can read more on that <a href="https://huggingface.co/docs/hub/en/security-tokens" target="_blank">here</a>.</p>
+                <p>You will need to create a new HuggingFace token or use your existing one. You can read more on that <a href="https://huggingface.co/docs/hub/en/security-tokens" target="_blank">here</a>.</p>
                 <br>
 
                 <h4>Create the dataset</h4>
-                <p>For fine-tuning you'll need labeled images, that is, the images the data needs to be extracted from and the corresponding json file with the extracted data already labeled.</p>
+                <p>For fine-tuning, you'll need labeled images—that is, images from which data needs to be extracted—and the corresponding JSON files containing the labeled data.</p>
                 <p>Example image:</p>
                 <img src="../images/gemma-3-fine-tuning.jpg">
                 <p>Example JSON:</p>
@@ -85,8 +85,8 @@
                 <br>
 
                 <h4>Prepare the dataset</h4>
-                <p>Next you must create a jsonl file in the format of the chat template that Gemma 3 will receive as input.</p>
-                <p>First, create the file with image paths (or urls). You can use this code (The # comment specifies what you should change according to your setup):</p>
+                <p>Next, you must create a JSONL file formatted according to the chat template that Gemma 3 expects as input.</p>
+                <p>First, create a file containing the image paths (or URLs).. You can use this code (The # comment specifies what you should change according to your setup):</p>
                 <div class="code-wrapper">
                 <button class="copy-btn" onclick="copyCode()">Copy</button>
                 <pre><code id="code-snippet">import os
