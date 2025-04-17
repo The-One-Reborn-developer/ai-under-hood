@@ -252,7 +252,7 @@ LOGGER = getLogger(__name__)
 login('')  # Paste your HuggingFace token here
 DATASET_PATH = Path('.') /  # Provide your dataset directory path
 JSONL_PATH = DATASET_PATH / 'dataset.jsonl'
-MODEL_SAVE_PATH = Path('.')
+MODEL_SAVE_PATH = Path('.')  # Path to where the model will be saved
 
 DATASET = load_dataset("json", data_files=str(JSONL_PATH), split='train')
 
@@ -270,7 +270,7 @@ PEFT_CONFIG = LoraConfig(
 )
 
 TRAINING_ARGUMENTS = SFTConfig(
-    output_dir=MODEL_SAVE_PATH /  # Provide a name for the model that will be saved after fine-tuning
+    output_dir=MODEL_SAVE_PATH
     num_train_epochs=1,
     per_device_train_batch_size=1,
     gradient_accumulation_steps=4,
