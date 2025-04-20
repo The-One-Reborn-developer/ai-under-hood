@@ -390,27 +390,26 @@ PROCESSOR.save_pretrained("")  # Путь, где будет сохранена 
                 <br>
 
                 <h4>Fine-Tuning</h4>
-                <p>Now everything is ready to begin the fine-tuning process. Run the following commands from the project's root:</p>
                 <p>Теперь всё готово для процесса fine-tuning. Запустите следующие комманды из корня проекта:</p>
                 <p></p>
                 <ol>
                     <li><code>python create_image_urls.py</code></li>
-                    <p>Expected output:</p>
+                    <p>Ожидаемый вывод:</p>
                     <p><code>File paths saved to {output file name}</code></p>
                     <li><code>python create_jsonl.py</code></li>
-                    <p>Expected output:</p>
+                    <p>Ожидаемый вывод:</p>
                     <p><code>Started creation of jsonl file...</code></p>
                     <p><code>Reading urls file...</code></p>
                     <p><code>Writing to output file...</code></p>
                     <li><code>PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True python fine_tune.py</code></li>
-                    <p>The model should start tuning now. When it's finished, run the final command.</p>
+                    <p>Модель должна начать обучение. Когда оно закончится, выполните последнюю команду:</p>
                     <li><code>python merge.py</code></li>
                 </ol>
                 <br>
 
                 <h4>Inference</h4>
-                <p>We have the model. Now to run inference on it we need to setup one more script.</p>
-                <p>Create <code>inference.py</code> file and paste the following code into it:</p>
+                <p>Модель готова. Теперь, чтобы выполнять на ней инференс, нужно написать ещё один скрипт.</p>
+                <p>Создайте файл <code>inference.py</code> и вставьте туда код:</p>
                 <div class="code-wrapper">
                 <button class="copy-btn" onclick="copyCode()">Copy</button>
                 <pre><code id="code-snippet">import torch
@@ -425,17 +424,17 @@ basicConfig(level=INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 LOGGER = getLogger(__name__)
 
 MODEL = AutoModelForImageTextToText.from_pretrained(
-    Path('.') / "",  # Provide merged model name
+    Path('.') / "",  # Путь до слитой модели
     device_map="auto",
     torch_dtype=torch.bfloat16,
     attn_implementation="eager",
 )
-PROCESSOR = AutoProcessor.from_pretrained(Path('.') / "")  # Provide merged model name
+PROCESSOR = AutoProcessor.from_pretrained(Path('.') / "")  # Путь до слитой модели
 
 
 def run_inference(image_path):
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},  # Use the same prompt that was used during fine-tuning
+        {"role": "system", "content": SYSTEM_PROMPT},  # Используйте тот же промпт, что был использован при fine-tuning
         {
             "role": "user",
             "content": [
@@ -500,16 +499,16 @@ def evaluate_single_image(image_path: Path):
     LOGGER.info(f"Inference time: {elapsed:.2f} seconds")
 
 if __name__ == '__main__':
-    sample = Path('.') / ""  # Path to an image to be passed for inference
+    sample = Path('.') / ""  # Путь до картинки для инференса
     result = run_inference(sample, MODEL, PROCESSOR)
     LOGGER.info(result)</code></pre>
                 </div>
-                <p>Finally, run inference on your image:</p>
+                <p>Наконец, выполните инференс на своей картинке:</p>
                 <p><code>python inference.py path/to/file</code></p>
                 <br>
 
-                <h4>Afterword</h4>
-                <p>The inference shown here is not meant to be used in production systems, as transformers library does not have the capacity for that. If you want your tuned LLM to perform in production, consider looking into <a href="#">this guide</a>.</p>
+                <h4>Послесловие</h4>
+                <p>Инференс, показанный здесь, не предназначен для использования в product-системах, так как библиотека transformers не обладает необходимой производительностью. Если вы хотите использовать LLM в продакшене, ознакомьтесь с <a href="#">этим руководством</a>.</p>
                 <!--TODO: add link to vLLM article-->
             </article>
         </main>
