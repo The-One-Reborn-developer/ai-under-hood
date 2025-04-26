@@ -29,7 +29,7 @@
             <article>
                 <h3>Fine-Tuning Gemma 3 with a custom dataset for a task of data extraction from an image.</h3>
                 <p><a href="https://ai.google.dev/gemma/docs/core/huggingface_vision_finetune_qlora" target="_blank">This guide</a> was used as a reference. However, the errors that occur during the process are not documented. Also, the topic of using a custom dataset is not covered.</p>
-                <p>This guide assumes you are using an Ubuntu-based Linux distribution. The only difference between using a different OS is in the prior setup to the fine-tuning.</p>
+                <p>This guide assumes you are using an Ubuntu-based Linux distribution. The only difference between using a different OS is in the prior setup to the Fine-Tuning.</p>
                 <br>
 
                 <h4>Environment</h4>
@@ -67,7 +67,7 @@
                 <br>
 
                 <h4>Create the Dataset</h4>
-                <p>For fine-tuning, you'll need labeled images—that is, images from which data needs to be extracted—and the corresponding JSON files containing the labeled data.</p>
+                <p>For Fine-Tuning, you'll need labeled images — that is, images from which data needs to be extracted—and the corresponding JSON files containing the labeled data.</p>
                 <p>Example image:</p>
                 <img src="../images/gemma-3-fine-tuning.jpg">
                 <p>Example JSON:</p>
@@ -193,7 +193,7 @@ if __name__ == '__main__':
                 </div>
                 <p>Couple of things to note so far:
                     <li>You must provide your own path to dataset directory.</li>
-                    <li>You must provide the system prompt that corresponds to your case. You can ask ChatGPT for a good system prompt for fine-tuning in your use-case, or read <a href="#">this article</a> to know how to construct such prompts yourself.</li>
+                    <li>You must provide the system prompt that corresponds to your case. You can ask ChatGPT for a good system prompt for Fine-Tuning in your use-case, or read <a href="#">this article</a> to know how to construct such prompts yourself.</li>
                     <!-- TODO: Add prompting article -->
                 </p>
                 <br>
@@ -389,7 +389,7 @@ PROCESSOR.save_pretrained("")  # Provide the name for the merged model that will
                 <br>
 
                 <h4>Fine-Tuning</h4>
-                <p>Now everything is ready to begin the fine-tuning process. Run the following commands from the project's root:</p>
+                <p>Now everything is ready to begin the Fine-Tuning process. Run the following commands from the project's root:</p>
                 <ol>
                     <li><code>python create_image_urls.py</code></li>
                     <p>Expected output:</p>
@@ -432,7 +432,7 @@ PROCESSOR = AutoProcessor.from_pretrained(Path('.') / "")  # Provide merged mode
 
 def run_inference(image_path):
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},  # Use the same prompt that was used during fine-tuning
+        {"role": "system", "content": SYSTEM_PROMPT},  # Use the same prompt that was used during Fine-Tuning
         {
             "role": "user",
             "content": [
