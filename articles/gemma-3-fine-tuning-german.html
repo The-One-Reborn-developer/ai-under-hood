@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="../styles/main.css">
+    <script src="../scripts/gemma-3-fine-tuning.js" defer></script>
+
+    <title>KI Unter Haube</title>
+</head>
+<body>
+    <div class="content">
+        <header class="header-container">
+            <span>
+                <a href="../index-german.html">Startseite</a> ©&nbsp;Adil Arshidin
+            </span>
+            <span class="header-container__nav">
+                <a href="#">LLM Benchmark</a>&nbsp;·
+                <a href="../knowledge_base-german.html">Wissensdatenbank</a>
+            </span>
+            <span>
+                <a href="gemma-3-fine-tuning-german.html">DE 🇩🇪</a>&nbsp;/
+                <a href="gemma-3-fine-tuning-russian.html">RU 🇷🇺</a>&nbsp;/
+                <a href="gemma-3-fine-tuning.html">EN 🇬🇧</a>
+            </span>
+        </header>
+        <main class="main-container">
+            <article>
+                <h3>Fine-Tuning Gemma 3 mit einem benutzerdefinierten Datensatz fur die Datenextraktion Aufgabe vom einem Bild.</h3>
+                <p><a href="https://ai.google.dev/gemma/docs/core/huggingface_vision_finetune_qlora" target="_blank">Diese Anleitung</a> wurde als Referenz verwendet. Allerdings sind die Fehler, die während des Prozesses auftreten können, nicht dokumentiert. Auch das Thema der Verwendung eindes benutzerdefinierten Datensatzes wird nicht behandelt.</p>
+                <p>This guide assumes you are using an Ubuntu-based Linux distribution. The only difference between using a different OS is in the prior setup to the fine-tuning.</p>
+                <br>
+
+                <h4>Umgebung</h4>
+                <p>Python 3.11.7 wird verwendet. Sie können es lokal für dieses Project mit <a href="https://github.com/pyenv/pyenv" target="_blank">pyenv</a> nutzen. Nachdem pyenv installiert und konfiguriert wurde, wechseln Sie ins Projektverzeichnis und führen folgenden Befehl aus: <code>pyenv local 3.11.7</code>.</p>
+                <p>Erstellen und aktivieren Sie nun eine virtuelle Umgebung mit venv, Poetry, Conda oder Ihrem bevorzugten Tool.</p>
+                <br>
+
+                <h4>Abhängigkeiten</h4>
+                <p>Installieren Sie die folgenden Abhängigkeiten (Sie können den folgenden Block auch in die Datei <code>requirements.txt</code> in Ihr Hauptverzeichnis Ihres Projekts copieren und dann mit <code>pip install -r requirements.txt</code>) installieren:</p>
+                <p>
+                    <div class="code-wrapper">
+                    <button class="copy-btn" onclick="copyCode()">Copy</button>
+                    <pre><code id="code-snippet">                        numpy==1.26.4
+                        torch>=2.4.0
+                        tensorboard
+                        torchvision
+                        git+https://github.com/huggingface/transformers@v4.49.0-Gemma-3
+                        datasets==3.3.2
+                        accelerate==1.4.0
+                        evaluate==0.4.3
+                        bitsandbytes==0.45.3
+                        trl==0.15.2
+                        peft==0.14.0
+                        pillow==11.1.0
+                        wandb==0.15.12
+                        protobuf
+                        sentencepiece
+                    </code></pre>
+                    </div>
+                </p>
+                <br>
+
+                <h4>HuggingFace Token</h4>
+                <p>Sie müssen ein neues HuggingFace-Token erstellen oder Ihr bestehendes Token verwenden. Sie können mehr darüber <a href="https://huggingface.co/docs/hub/en/security-tokens" target="_blank">hier</a> nachlesen.</p>
+                <br>
+
+                <h4>Datensatz erstellen</h4>
+                <p>Für das Fine-Tuning benötigen Sie gelabelte Bilder – das heißt, Bilder, aus denen Daten extrahiert werden sollen – sowie die entsprechenden JSON-Dateien, die die gelabelten Daten enthalten.</p>
+
+                <p>Beispielbild:</p>
+                <img src="../images/gemma-3-fine-tuning.jpg">
+                <p>Beispiel-JSON:</p>
+                <div class="code-wrapper">
+<pre><code id="code-snippet">{
+    "document_type": "bank_card",
+    "bank": "BT",
+    "num": "41************",
+    "exp": "06/27",
+    "cardholder": "***** *******",
+    "type": "VISA"
+}</code></pre>
+                </div>
+                <p>Zur einfacheren Nutzung sollten die Dateien fortlaufend nummeriert sein: 1.jpg, 1.json usw. Beachten Sie, dass ich in dieser Anleitung das JPEG-Format verwende.</p>
+                <br>
+
+                <h4>Datensatz vorbereiten</h4>
+                <p>Als Nächstes müssen Sie eine JSONL-Datei erstellen, die dem Chat-Template entspricht, das Gemma 3 als Eingabe erwartet.</p>
+                <p>Erstellen Sie zunächst eine Datei, die die Bildpfade (oder URLs) enthält. Sie können dafür diesen Code verwenden (der # Kommentar zeigt an, was Sie entsprechend Ihrer Umgebung anpassen müssen):</p>
+                <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode()">Copy</button>
+                <pre><code id="code-snippet">import os
+import re
+
+from pathlib import Path
+
+
+DIRECTORY = Path('.') /  # Geben Sie hier den Pfad zu Ihrem Datensatzverzeichnis an
+OUTPUT_FILE = DIRECTORY / 'urls.txt'
+
+
+def natural_sort_key(file_path):
+    file_name = os.path.basename(file_path)
+    return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', file_name)]
+
+
+def list_jpg_files():
+    try:
+        jpg_files = []
+        for root, _, files in os.walk(DIRECTORY):
+            for file in files:
+                if file.lower().endswith(".jpg"):
+                    jpg_files.append(os.path.abspath(os.path.join(root, file)))
+        
+        jpg_files.sort(key=natural_sort_key)
+        
+        with open(OUTPUT_FILE, 'w') as f:
+            for file_path in jpg_files:
+                f.write(file_path + "\n")
+        
+        print(f"File paths saved to {OUTPUT_FILE}")
+    except Exception as e:
+        print(f"Error: {e}")
+
+
+if __name__ == "__main__":
+    list_jpg_files()</code></pre>
+                </div>
+                <p>Nachdem die <code>urls.txt</code>-Datei erfolgreich erstellt und in Ihrem Datensatzverzeichnis abgelegt wurde, können Sie nun die JSONL-Datei erstellen. Auch hier können Sie diesen Code verwenden:</p>
+                <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode()">Copy</button>
+                <pre><code id="code-snippet">import json
+import os
+
+from logging import basicConfig, INFO, getLogger
+from pathlib import Path
+
+
+basicConfig(level=INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+LOGGER = getLogger(__name__)
+
+DATASET_PATH = Path('.') /  # Der Pfad zu Ihrem Datensatzverzeichnis
+IMAGE_URLS_FILE = DATASET_PATH / 'urls.txt'
+OUTPUT_FILE = DATASET_PATH / 'dataset.jsonl'
+
+
+def format_data(sample):
+    return {
+        "messages": [
+            {"role": "system", "content": [{"type": "text", "text": sample["system_prompt"]}]},
+            {"role": "user", "content": [{"type": "image", "images": sample["image"]}]},
+            {"role": "assistant", "content": [{"type": "text", "text": sample["json_data"]}]},
+        ],
+    }
+
+
+def create_jsonl(image_urls_file, data_dir, output_file):
+    try:
+        LOGGER.info('Reading urls file...')
+        with open(image_urls_file, 'r') as f:
+            image_urls = [line.strip() for line in f]
+        
+        LOGGER.info('Writing to output file...')
+        with open(output_file, 'w') as outfile:
+            for i, _ in enumerate(image_urls, start=1):
+                img_json_file = os.path.join(data_dir, f'{i:d}.json')
+
+                if os.path.exists(img_json_file):
+                    with open(img_json_file, 'r') as json_file:
+                        img_json = json.load(json_file)
+                        formatted_json = json.dumps(img_json, indent=4, ensure_ascii=False)
+                else:
+                    LOGGER.warning(f"File {img_json_file} not found, skipping.")
+                    continue
+
+                image_path = os.path.join(data_dir, f'{i}.jpg')
+
+                sample = {
+                    "system_prompt": SYSTEM_PROMPT,  # Hier müssen Sie ein Prompt angeben, das die Ausgabe des LLMs lenken wird
+                    "image": image_path,
+                    "json_data": formatted_json,
+                }
+
+                formatted_record = format_data(sample)
+                outfile.write(json.dumps(formatted_record, ensure_ascii=False) + '\n')
+    except Exception:
+        LOGGER.exception('Failed to create jsonl file.')
+
+
+if __name__ == '__main__':
+    LOGGER.info('Started creation of jsonl file...')
+    create_jsonl(IMAGE_URLS_FILE, DATASET_PATH, OUTPUT_FILE)</code></pre>
+                </div>
+                <p>Ein paar Dinge, die bisher zu beachten sind:</p>
+                <ul>
+                    <li>Sie müssen den Pfad zu Ihrem Datensatzverzeichnis angeben.</li>
+                    <li>Sie müssen den System-Prompt angeben, der zu Ihrem Fall passt. Sie können ChatGPT nach einem guten System-Prompt für das Fine-Tuning in Ihrem Anwendungsfall fragen oder <a href="#">diesen Artikel</a> lesen, um zu erfahren, wie man solche Prompts selbst erstellt.</li>
+                </ul>
+                <!-- TODO: Add prompting article -->
+                </p>
+                <br>
+
+                <h4>Den Code vorbereiten</h4>
+                <p>Erstellen Sie eine <code>loader.py</code>-Datei im Stammverzeichnis Ihres Projekts und fügen Sie den folgenden Code ein (die Kommentare listen auch die verschiedenen Gemma-Modelle auf, aus denen Sie wählen können). Dies ist ein Hilfsmodul, das das Modell und seinen Prozessor lädt:</p>
+                <div class="code-wrapper">
+                    <pre><code id="code-snippet">import torch
+
+from transformers import AutoProcessor, AutoModelForImageTextToText, BitsAndBytesConfig
+
+
+def load_model_and_processor():
+    model_id = "google/gemma-3-4b-pt"  # `google/gemma-3-4b/12b/27b-pt`
+
+    model_kwargs = dict(
+        attn_implementation="eager",  # "flash_attention_2" für neuere GPUs
+        torch_dtype=torch.bfloat16,
+        device_map="auto",
+    )
+
+    model_kwargs["quantization_config"] = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=model_kwargs["torch_dtype"],
+        bnb_4bit_quant_storage=model_kwargs["torch_dtype"],
+    )
+
+    model = AutoModelForImageTextToText.from_pretrained(model_id, **model_kwargs)
+    processor = AutoProcessor.from_pretrained("google/gemma-3-4b-it")  # `google/gemma-3-4b/12b/27b-it`
+    
+    return model, processor</code></pre>
+                </div>
+                <p>Erstellen Sie nun die <code>fine_tune.py</code>-Datei. Kopieren Sie den folgenden Code und fügen Sie ihn dort ein:</p>
+                <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode()">Copy</button>
+                <pre><code id="code-snippet">import gc
+import torch
+
+from pathlib import Path
+from PIL import Image
+from logging import basicConfig, INFO, getLogger
+
+from huggingface_hub import login
+from datasets import load_dataset
+from peft import LoraConfig
+from trl import SFTConfig, SFTTrainer
+
+from loader import load_model_and_processor
+
+torch.set_float32_matmul_precision('high')
+basicConfig(level=INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+LOGGER = getLogger(__name__)
+
+login('')  # Paste your HuggingFace token here
+DATASET_PATH = Path('.') /  # Geben Sie den Pfad zu Ihrem Datensatzverzeichnis an
+JSONL_PATH = DATASET_PATH / 'dataset.jsonl'
+MODEL_SAVE_PATH = Path('.')  # Pfad, in dem das Modell gespeichert werden soll
+
+DATASET = load_dataset("json", data_files=str(JSONL_PATH), split='train')
+
+PEFT_CONFIG = LoraConfig(
+    lora_alpha=16,
+    lora_dropout=0.05,
+    r=16,
+    bias="none",
+    target_modules="all-linear",
+    task_type="CAUSAL_LM",
+    modules_to_save=[
+        "lm_head",
+        "embed_tokens",
+    ],
+)
+
+TRAINING_ARGUMENTS = SFTConfig(
+    output_dir=MODEL_SAVE_PATH
+    num_train_epochs=1,
+    per_device_train_batch_size=1,
+    gradient_accumulation_steps=4,
+    gradient_checkpointing=True,
+    gradient_checkpointing_kwargs={"use_reentrant": False},
+    optim="adamw_torch_fused",
+    logging_steps=10,
+    save_strategy="epoch",
+    learning_rate=2e-4,
+    fp16=True,
+    max_grad_norm=0.3,
+    warmup_ratio=0.03,
+    lr_scheduler_type="constant",
+    push_to_hub=False,
+    report_to=[],
+    dataset_text_field="",
+    dataset_kwargs={"skip_prepare_dataset": True},
+)
+TRAINING_ARGUMENTS.remove_unused_columns = False
+
+MODEL, PROCESSOR = load_model_and_processor()
+
+
+def process_vision_info(messages: list[dict]) -> list[Image.Image]:
+    image_inputs = []
+
+    for message in messages:
+        content = message.get("content", [])
+        if not isinstance(content, list):
+            content = [content]
+
+        for element in content:
+            if isinstance(element, dict) and element.get("type") == "image":
+                image_path = element.get('images', None)
+
+                if not image_path:
+                    LOGGER.info('Missing image data. Skipping.')
+
+                try:
+                    image = Image.open(image_path).convert('RGB')
+                    image_inputs.append(image)
+                except Exception:
+                    LOGGER.exception(f'Error processing image.')
+                    continue
+
+    return image_inputs
+
+
+def collate_fn(examples):
+    texts = []
+    images = []
+    for example in examples:
+        image_inputs = process_vision_info(example["messages"])
+        text = PROCESSOR.apply_chat_template(
+            example["messages"], add_generation_prompt=False, tokenize=False
+        )
+        texts.append(text.strip())
+        images.append(image_inputs)
+
+    batch = PROCESSOR(text=texts, images=images, return_tensors="pt", padding=True)
+
+    labels = batch["input_ids"].clone()
+
+    image_token_id = [
+        PROCESSOR.tokenizer.convert_tokens_to_ids(
+            PROCESSOR.tokenizer.special_tokens_map["boi_token"]
+        )
+    ]
+
+    labels[labels == PROCESSOR.tokenizer.pad_token_id] = -100
+    labels[labels == image_token_id] = -100
+    labels[labels == 262144] = -100
+
+    batch["labels"] = labels
+    return batch
+
+
+if __name__ == '__main__':
+    trainer = SFTTrainer(
+        model=MODEL,
+        args=TRAINING_ARGUMENTS,
+        train_dataset=DATASET,
+        peft_config=PEFT_CONFIG,
+        processing_class=PROCESSOR,
+        data_collator=collate_fn
+    )
+
+    torch.cuda.empty_cache()
+    torch.cuda.reset_peak_memory_stats()
+    gc.collect()
+
+    trainer.train()
+    trainer.save_model()</code></pre>
+                </div>
+                <p>Die Anleitung verwendet QLoRA, daher trainieren wir nicht tatsächlich das Modell, sondern die Adapter-Gewichte. Der nächste Schritt besteht darin, diese mit dem Modell zu kombinieren, <strong>dies ist eine ressourcenintensive Aufgabe (benötigt etwa 40 GB RAM).</strong></p>
+                <p>Erstellen Sie eine <code>merge.py</code>-Datei und fügen Sie den folgenden Code ein:</p>
+                <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode()">Copy</button>
+                <pre><code id="code-snippet">from pathlib import Path
+from peft import PeftModel
+
+from transformers import AutoModelForImageTextToText, AutoProcessor
+
+
+MODEL_ID = "google/gemma-3-4b-pt" # `google/gemma-3-4b/12b/27b-pt`
+MODEL = AutoModelForImageTextToText.from_pretrained(MODEL_ID, low_cpu_mem_usage=True)
+PEFT_MODEL = PeftModel.from_pretrained(MODEL, Path('.') / "")  # Geben Sie den Namen des "trainierten" Modells hier ein
+
+MERGED_MODEL = PEFT_MODEL.merge_and_unload()
+MERGED_MODEL.save_pretrained("", safe_serialization=True, max_shard_size='2GB')  # Geben Sie den Namen des zusammengeführten Modells an, das gespeichert wird
+
+PROCESSOR = AutoProcessor.from_pretrained(Path('.') / "")  # Geben Sie den Namen des "trainierten" Modells hier ein
+PROCESSOR.save_pretrained("")  # Geben Sie den Namen des zusammengeführten Modells an, das gespeichert wird</code></pre>
+                </div>
+                <p>Füllen Sie die leeren Strings "" mit den entsprechenden Namen aus.</p>
+                <br>
+
+                <h4>Fine-Tuning</h4>
+                <p>Nun ist alles bereit, um den Fine-Tuning-Prozess zu starten. Führen Sie die folgenden Befehle im Stammverzeichnis des Projekts aus:</p>
+                <ol>
+                    <li><code>python create_image_urls.py</code></li>
+                    <p>Erwartete Ausgabe:</p>
+                    <p><code>Dateipfade wurden in {Ausgabedateiname} gespeichert</code></p>
+                    <li><code>python create_jsonl.py</code></li>
+                    <p>Erwartete Ausgabe:</p>
+                    <p><code>Erstellung der jsonl-Datei gestartet...</code></p>
+                    <p><code>Lesen der urls-Datei...</code></p>
+                    <p><code>Schreiben in die Ausgabedatei...</code></p>
+                    <li><code>PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True python fine_tune.py</code></li>
+                    <p>Das Modell sollte nun mit dem Fine-Tuning beginnen. Wenn es fertig ist, führen Sie den letzten Befehl aus:</p>
+                    <li><code>python merge.py</code></li>
+                </ol>
+                <br>
+
+                <h4>Inference</h4>
+                <p>Wir haben das Modell. Jetzt müssen wir ein weiteres Skript einrichten, um Inferenz darauf auszuführen.</p>
+                <p>Erstellen Sie eine <code>inference.py</code>-Datei und fügen Sie den folgenden Code ein:</p>
+                <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode()">Copy</button>
+                <pre><code id="code-snippet">import torch
+
+from logging import basicConfig, INFO, getLogger
+from PIL import Image
+from pathlib import Path
+from transformers import AutoModelForImageTextToText, AutoProcessor
+
+
+basicConfig(level=INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+LOGGER = getLogger(__name__)
+
+MODEL = AutoModelForImageTextToText.from_pretrained(
+    Path('.') / "",  # Provide merged model name
+    device_map="auto",
+    torch_dtype=torch.bfloat16,
+    attn_implementation="eager",
+)
+PROCESSOR = AutoProcessor.from_pretrained(Path('.') / "")  # Geben Sie den Namen des zusammengeführten Modells hier an
+
+
+def run_inference(image_path):
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},  # Verwenden Sie dasselbe Prompt, das während des Fine-Tunings verwendet wurde
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "Extract the data from this image"},
+                {"type": "image", "image": Image.open(image_path)}
+            ]
+        },
+    ]
+
+    inputs = PROCESSOR.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True
+    )
+
+    inputs = PROCESSOR(
+        text=[inputs],
+        images=[Image.open(image_path)],
+        padding=True,
+        return_tensors="pt",
+    )
+    inputs = inputs.to(MODEL.device)
+
+    stop_token_ids = [
+        PROCESSOR.tokenizer.eos_token_id,
+        PROCESSOR.tokenizer.convert_tokens_to_ids("&lt;end_of_turn&gt;")
+    ]
+
+    generated_ids = MODEL.generate(
+        **inputs,
+        max_new_tokens=512,
+        top_p=0.9,
+        do_sample=True,
+        temperature=0.15,
+        eos_token_id=stop_token_ids,
+        disable_compile=True,
+    )
+
+    generated_ids = MODEL.generate(**inputs, max_new_tokens=256, top_p=1.0, do_sample=True, temperature=0.8, eos_token_id=stop_token_ids, disable_compile=True)
+    generated_ids_trimmed = [out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)]
+    output_text = PROCESSOR.batch_decode(
+        generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
+    )
+
+    return output_text[0]
+
+
+def evaluate_single_image(image_path: Path):
+    json_path = image_path.with_suffix(".json")
+    if not json_path.exists():
+        LOGGER.error(f"JSON file not found for image: {image_path}")
+        return
+
+    start_time = time.time()
+    pred = run_inference(image_path)
+    elapsed = time.time() - start_time
+
+    with open(json_path, "r", encoding="utf-8") as f:
+        ground_truth = json.load(f)
+
+    correct, total = evaluate_prediction(pred, ground_truth)
+
+    LOGGER.info(f"{image_path.name} - Accuracy: {correct}/{total} ({correct/total if total > 0 else 0:.2%})")
+    LOGGER.info(f"Inference time: {elapsed:.2f} seconds")
+
+if __name__ == '__main__':
+    sample = Path('.') / ""  # Pfad zu einem Bild, das für die Inferenz verwendet werden soll
+    result = run_inference(sample, MODEL, PROCESSOR)
+    LOGGER.info(result)</code></pre>
+                </div>
+                <p>Führen Sie schließlich die Inferenz auf Ihrem Bild aus:</p>
+                <p><code>python inference.py path/to/file</code></p>
+                <br>
+
+                <h4>Nachwort</h4>
+                <p>Die hier gezeigte Inferenz ist nicht für den Einsatz in Produktionssystemen gedacht, da die Transformers-Bibliothek dafür nicht geeignet ist. Wenn Sie möchten, dass Ihr feinabgestimmtes LLM in der Produktion funktioniert, sollten Sie sich <a href="#">diesen Leitfaden</a> ansehen.</p>
+<!--TODO: add link to vLLM article-->
+            </article>
+        </main>
+    </div>
+</body>
+</html>
