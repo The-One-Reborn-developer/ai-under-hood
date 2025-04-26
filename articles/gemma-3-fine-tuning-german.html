@@ -396,12 +396,12 @@ PROCESSOR.save_pretrained("")  # Geben Sie den Namen des zusammengeführten Mode
                 <ol>
                     <li><code>python create_image_urls.py</code></li>
                     <p>Erwartete Ausgabe:</p>
-                    <p><code>Dateipfade wurden in {Ausgabedateiname} gespeichert</code></p>
+                    <p><code>File paths saved to {output file name}</code></p>
                     <li><code>python create_jsonl.py</code></li>
                     <p>Erwartete Ausgabe:</p>
-                    <p><code>Erstellung der jsonl-Datei gestartet...</code></p>
-                    <p><code>Lesen der urls-Datei...</code></p>
-                    <p><code>Schreiben in die Ausgabedatei...</code></p>
+                    <p><code>Started creation of jsonl file...</code></p>
+                    <p><code>Reading urls file...</code></p>
+                    <p><code>Writing to output file...</code></p>
                     <li><code>PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True python fine_tune.py</code></li>
                     <p>Das Modell sollte nun mit dem Fine-Tuning beginnen. Wenn es fertig ist, führen Sie den letzten Befehl aus:</p>
                     <li><code>python merge.py</code></li>
