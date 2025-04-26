@@ -62,11 +62,11 @@
                 </p>
                 <br>
 
-                <h4>HuggingFace token</h4>
+                <h4>HuggingFace Token</h4>
                 <p>You will need to create a new HuggingFace token or use your existing one. You can read more on that <a href="https://huggingface.co/docs/hub/en/security-tokens" target="_blank">here</a>.</p>
                 <br>
 
-                <h4>Create the dataset</h4>
+                <h4>Create the Dataset</h4>
                 <p>For fine-tuning, you'll need labeled images—that is, images from which data needs to be extracted—and the corresponding JSON files containing the labeled data.</p>
                 <p>Example image:</p>
                 <img src="../images/gemma-3-fine-tuning.jpg">
@@ -84,7 +84,7 @@
                 <p>For ease of use the files should be named numerically ascending: 1.jpg, 1.json, etc. Note that I will use JPEG format for this guide.</p>
                 <br>
 
-                <h4>Prepare the dataset</h4>
+                <h4>Prepare the Dataset</h4>
                 <p>Next, you must create a JSONL file formatted according to the chat template that Gemma 3 expects as input.</p>
                 <p>First, create a file containing the image paths (or URLs).. You can use this code (The # comment specifies what you should change according to your setup):</p>
                 <div class="code-wrapper">
@@ -198,7 +198,7 @@ if __name__ == '__main__':
                 </p>
                 <br>
 
-                <h4>Prepare the code</h4>
+                <h4>Prepare the Code</h4>
                 <p>Create a <code>loader.py</code> file in your project's root and paste the following code in it (The comments also list the various gemma models you can choose from). This is a helper module that will load the model and its processor:</p>
                 <div class="code-wrapper">
                     <pre><code id="code-snippet">import torch
