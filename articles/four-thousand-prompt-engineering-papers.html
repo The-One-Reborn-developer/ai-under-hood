@@ -43,10 +43,29 @@
                 <h4>CauCoT (Causal Chain of Thought)</h4>
                 <p>Classic CoT example:</p>
                 <img src="../images/four-thousand-prompt-engineering-papers-2.jpg">
-
                 <p>Causal CoT takes the classic approach a step further. Instead of relying on the model to create the steps it will go through, you are providing the steps to the model.</p>
                 <p>Example:</p>
                 <img src="../images/four-thousand-prompt-engineering-papers-3.jpg">
+                <br>
+
+                <h4>Structured CoT</h4>
+                <p>Here we add one more step to the previous technique. Before the main task we ask the model to perform a sub-task which is to understand what is needed to complete the main task.</p>
+                <p>Example:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-4.jpg">
+                <p>And here's model's output:</p>
+                <p>
+                    <ul style="list-style-type: none;">
+                        <li>🔹 Step 1: Understand the logical structure of each statement</li>
+                        <li>🔹 Step 2: Understand what the exclusivity constraint implies</li>
+                        <li>🔹 Step 3: For each person (A, J, M, S), assume they took the candy</li>
+                        <li>🔹 Step 4: Maintain causal chains explicitly</li>
+                        <li>🔹 Step 5: Conclude based on elimination and logical necessity</li>
+                    </ul>
+                </p>
+                <p>We can take this output and use pass it futher to the model using CauCoT.</p>
+                <br>
+
+                
             </article>
         </main>
     </div>
