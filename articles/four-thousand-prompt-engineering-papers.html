@@ -43,16 +43,16 @@
                 <h4>CauCoT (Causal Chain of Thought)</h4>
                 <p>Classic CoT example:</p>
                 <img src="../images/four-thousand-prompt-engineering-papers-2.jpg">
-                <p>Causal CoT takes the classic approach a step further. Instead of relying on the model to create the steps it will go through, you are providing the steps to the model.</p>
+                <p>Causal CoT takes the classic approach a step further. Instead of relying on the LLM to create the steps it will go through, you are providing the steps to it.</p>
                 <p>Example:</p>
                 <img src="../images/four-thousand-prompt-engineering-papers-3.jpg">
                 <br>
 
                 <h4>Structured CoT</h4>
-                <p>Here we add one more step to the previous technique. Before the main task we ask the model to perform a sub-task which is to understand what is needed to complete the main task.</p>
+                <p>Here we add one more step to the previous technique. Before the main task we ask the LLM to perform a sub-task which is to understand what is needed to complete the main task.</p>
                 <p>Example:</p>
                 <img src="../images/four-thousand-prompt-engineering-papers-4.jpg">
-                <p>And here's model's output:</p>
+                <p>And here's the output:</p>
                 <p>
                     <ul style="list-style-type: none;">
                         <li>🔹 Step 1: Understand the logical structure of each statement</li>
@@ -62,10 +62,35 @@
                         <li>🔹 Step 5: Conclude based on elimination and logical necessity</li>
                     </ul>
                 </p>
-                <p>We can take this output and use pass it futher to the model using CauCoT.</p>
+                <p>We can take this output and use pass it futher to the LLM using CauCoT.</p>
                 <br>
 
-                
+                <h4>Program of Thoughts CoT</h4>
+                <p>This is similar to CauCoT. But, instead of using natural language for solving the task, we ask the LLM to write the code that can be used to assist in the task.</p>
+                <p>Example:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-5.jpg">
+                <br>
+
+                <h4>Tree of Thought (ToT)</h4>
+                <p>This technique expands from the linear CoT to a tree like structure, accounting for several different problem solving ways. It allows the LLM to return to the previous steps and go through another route in case of an error.</p>
+                <p>Example:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-6.jpg">
+                <br>
+
+                <h4>Contrast Reasoning</h4>
+                <p>This method requires us to give the LLM not only the task of finding the correct solution, but also providing it with the additional task of reasoning an incorrect one.</p>
+                <p>Generation of the opposite thoughts forces the LLM to focus of providing the correct answer which will definetily differ from incorrect ones.</p>
+                <p>Example:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-7.jpg">
+                <br>
+
+                <h4>Chain of Draft (CoD)</h4>
+                <p>A simplified version of CoT that uses minimal but informative thoughts (about a sentence for a step). The accuracy is on par to the CoT but less tokens are used.</p>
+                <p>Example:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-8.jpg">
+                <br>
+
+                <h4></h4>
             </article>
         </main>
     </div>
