@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="../styles/main.css">
+
+    <title>KI Unter Haube</title>
+</head>
+<body>
+    <div class="content">
+        <header class="header-container">
+            <span>
+                <a href="../index-german.html">Startseite</a> ©&nbsp;Adil Arshidin
+            </span>
+            <span class="header-container__nav">
+                <a href="#">LLM Benchmark</a>&nbsp;·
+                <a href="../knowledge_base-german.html">Wissensdatenbank</a>
+            </span>
+            <span>
+                <a href="four-thousand-prompt-engineering-papers-german.html">DE 🇩🇪</a>&nbsp;/
+                <a href="four-thousand-prompt-engineering-papers-russian.html">RU 🇷🇺</a>&nbsp;/
+                <a href="four-thousand-prompt-engineering-papers.html">EN 🇬🇧</a>
+            </span>
+        </header>
+        <main class="main-container">
+            <article>
+                <h3>Einblick in 4000 wegweisende Arbeiten zum Prompt Engineering.</h3>
+                <p>Dieser Artikel ist eine prägnante Transkription von <a href="https://www.youtube.com/watch?v=cMR2c3vQRAc&t">diesem YouTube-Video</a>.</p>
+                <p>Die umfassende Analyse von 4000 Arbeiten wurde durch Experimente mit Claude, ChatGPT und OpenRouter durchgeführt. Insgesamt wurden 600$ (Januar 2025) investiert.</p>
+                <p>Im Folgenden sind die nützlichsten Konzepte aufgeführt, die aus diesen Studien extrahiert wurden.</p>
+                <br>
+
+                <h4>Rollenbasiertes Prompting (Role-Based Prompting)</h4>
+                <p>Es ist wichtig, nicht nur eine Rolle anzugeben, sondern eine spezifische Rolle, die bei der jeweiligen Aufgabe hilft.</p>
+                <p>Beispiel: Anstatt <i>"Du bist Mathematiker."</i> zu schreiben, formuliert man besser <i>"Du bist Experte für lineare Algebra."</i></p>
+                <p>Eine Erweiterung davon ist das MoE-Modell (Mixture of Experts), bei dem die Aufgabe in Schritte aufgeteilt wird und jedem Schritt eine bestimmte Expertenrolle zugewiesen wird.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-1.jpg">
+                <br>
+
+                <h4>CauCoT (Kausale Chain of Thought)</h4>
+                <p>Klassisches CoT-Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-2.jpg">
+                <p>Causal CoT geht einen Schritt weiter. Anstatt das LLM die Schritte selbst entwickeln zu lassen, geben wir die Schritte explizit vor.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-3.jpg">
+                <br>
+
+                <h4>Strukturierte CoT (Structured CoT)</h4>
+                <p>Ein zusätzlicher Schritt: Vor der Hauptaufgabe bitten wir das LLM zu analysieren, was notwendig ist, um diese Aufgabe zu lösen.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-4.jpg">
+                <p>Und hier das Ergebnis:</p>
+                <p>
+                    <ul style="list-style-type: none;">
+                        <li>🔹 Schritt 1: Die logische Struktur jeder Aussage verstehen</li>
+                        <li>🔹 Schritt 2: Die Bedeutung der Ausschlussregel erfassen</li>
+                        <li>🔹 Schritt 3: Für jede Person (A, J, M, S) annehmen, dass sie die Süßigkeit genommen hat</li>
+                        <li>🔹 Schritt 4: Kausale Ketten explizit beibehalten</li>
+                        <li>🔹 Schritt 5: Durch Ausschluss und logische Notwendigkeit zum Ergebnis kommen</li>
+                    </ul>
+                </p>
+                <p>Diese Ausgabe kann dann weiter im LLM über CauCoT verwendet werden.</p>
+                <br>
+
+                <h4>Program of Thoughts CoT</h4>
+                <p>Ähnlich wie CauCoT, jedoch fordern wir das LLM auf, Code zu schreiben, um die Aufgabe zu lösen – statt natürlicher Sprache.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-5.jpg">
+                <br>
+
+                <h4>Tree of Thought (ToT)</h4>
+                <p>Diese Technik erweitert die lineare CoT zu einer Baumstruktur, in der verschiedene Lösungswege möglich sind. Das LLM kann bei Fehlern zu früheren Schritten zurückkehren.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-6.jpg">
+                <br>
+
+                <h4>Kontrastives Denken (Contrast Reasoning)</h4>
+                <p>Das LLM soll nicht nur die richtige Antwort geben, sondern auch eine falsche Antwort samt Begründung erzeugen.</p>
+                <p>Das Erzeugen gegensätzlicher Gedankengänge zwingt das Modell dazu, die richtige Lösung klar von den falschen abzugrenzen.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-7.jpg">
+                <br>
+
+                <h4>Chain of Draft (CoD)</h4>
+                <p>Eine vereinfachte Version der CoT mit minimalem, aber nützlichem Gedankengut (etwa ein Satz pro Schritt). Ähnliche Genauigkeit wie CoT, aber mit weniger Tokenverbrauch.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-8.jpg">
+                <br>
+
+                <h4>Kette des Denkens (Chain of Reasoning, CoR)</h4>
+                <p>Verschiedene Denkstile werden kombiniert: natürliche Sprache, algorithmisch, symbolisch.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-9.jpg">
+                <br>
+
+                <h4>Selbstverbesserung (Self-Refine)</h4>
+                <p>Selbsterklärend: Wir lassen das LLM seine eigene Antwort bewerten und reflektieren.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-10.jpg">
+                <p>Eine andere Variante ist es, eine Bewertungsmetrik anzugeben, nach der das Modell seine Sicherheit beurteilen kann.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-11.jpg">
+                <br>
+
+                <h4>Verifikationskette (Chain of Verification, CoV)</h4>
+                <p>Eine Methode, die CoT und Self-Refine kombiniert.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-12.jpg">
+                <br>
+
+                <h4>Sandwich-Technik</h4>
+                <p>Die Reihenfolge der Informationen im Prompt ist entscheidend. Die wichtigsten Inhalte kommen an den Anfang und ans Ende.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-13.jpg">
+                <br>
+
+                <h4>Prioritäten-Hierarchie (Priority Hierarchy)</h4>
+                <p>Elemente werden nach Wichtigkeit sortiert – vom Wichtigsten zum Unwichtigsten.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-14.jpg">
+                <br>
+
+                <h4>Kaskaden-Methode (Cascade Method)</h4>
+                <p>Informationen werden vom Allgemeinen zum Konkreten strukturiert – wie ein Trichter der Detaillierung.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-15.jpg">
+                <br>
+
+                <h4>Zwischenzusammenfassungen (Intermediate summarization)</h4>
+                <p>Kurze Zusammenfassungen nach jedem bedeutenden Informationsblock einfügen.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-16.jpg">
+                <br>
+
+                <h4>Kontext-Aufgabe-Regler (Context-Task-Regulators)</h4>
+                <p>Die optimale Struktur des Prompts ist: Rolle → Kontext → Aufgabe → Format → Einschränkungen.</p>
+                <p>Beispiel:</p>
+                <img src="../images/four-thousand-prompt-engineering-papers-17.jpg">
+                <br>
+            </article>
+        </main>
+    </div>
+</body>
+</html>
